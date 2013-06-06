@@ -7,26 +7,61 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
-    <bean name="scheduledTask" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+        <!-- <property name="url" value="jdbc:oracle:thin:@cobnora001.dev-4.dsapp.dc2.dsghost.net:1521:IMCD4" />  -->
+        <property name="url" value="jdbc:mysql://localhost:3306/quartz" />
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="username" value="root" />
+        <property name="password" value=""/>
+    </bean>
+
+    <bean name="scheduledJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
         <property name="jobClass" value="quartz.mess.HelloJob"/>
         <property name="durability" value="true" />
     </bean>
 
     <bean id="scheduledTaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
-        <property name="jobDetail" ref="scheduledTask"/>
+        <property name="jobDetail" ref="scheduledJob"/>
         <property name="cronExpression" value="0/5 * * * * ?"/>
+        <property name="misfireInstructionName" value="MISFIRE_INSTRUCTION_FIRE_ONCE_NOW"/>
     </bean>
 
     <bean id="schedulerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-        <property name="jobDetails">
-            <list>
-                <ref bean="scheduledTask"/>
-            </list>
+        <property name="schedulerContextAsMap">
+            <map>
+                <entry key="scheduledJob" value-ref="scheduledJob" />
+            </map>
         </property>
+
+        <property name="jobFactory">
+            <bean class="org.springframework.scheduling.quartz.SpringBeanJobFactory"/>
+        </property>
+        <!--  Should be enabled if you want to overwrite existing jobs in the system -->
+        <property name="overwriteExistingJobs" value="true" />
+
         <property name="triggers">
             <list>
                 <ref bean="scheduledTaskTrigger"/>
             </list>
         </property>
+        <property name="dataSource" ref="dataSource" />
+        <property name="applicationContextSchedulerContextKey">
+            <value>applicationContext</value>
+        </property>
+        <property name="quartzProperties">
+            <props>
+                <prop key="org.quartz.scheduler.instanceName">HelloJobScheduler</prop>
+                <prop key="org.quartz.scheduler.instanceId">AUTO</prop>
+                <prop key="org.quartz.threadPool.class">org.quartz.simpl.SimpleThreadPool</prop>
+                <prop key="org.quartz.threadPool.threadCount">1</prop>
+                <prop key="org.quartz.scheduler.skipUpdateCheck">true</prop>
+                <prop key="org.quartz.jobStore.class">org.quartz.impl.jdbcjobstore.JobStoreTX</prop>
+                <prop key="org.quartz.jobStore.driverDelegateClass">org.quartz.impl.jdbcjobstore.StdJDBCDelegate</prop>
+                <prop key="org.quartz.jobStore.tablePrefix">QRTZ_</prop>
+                <prop key="org.quartz.jobStore.isClustered">true</prop>
+            </props>
+        </property>
+
     </bean>
+
     </beans>
