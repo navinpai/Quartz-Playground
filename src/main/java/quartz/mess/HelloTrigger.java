@@ -3,6 +3,8 @@ package quartz.mess;
 import org.quartz.*;
 import org.quartz.impl.StdScheduler;
 import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,14 +14,7 @@ import org.quartz.impl.StdSchedulerFactory;
  * To change this template use File | Settings | File Templates.
  */
 public class HelloTrigger {
-    public static void main(String args[]) throws SchedulerException {
-
-        JobDetail jobDetail= JobBuilder.newJob(HelloJob.class).withIdentity("HelloJob").build();
-
-        Trigger trigger= TriggerBuilder.newTrigger().withIdentity("HelloTrigger").withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?")).build();
-
-        Scheduler scheduler=new StdSchedulerFactory().getScheduler();
-        scheduler.start();
-        scheduler.scheduleJob(jobDetail,trigger);
+   public static void main(String args[]) {
+       ApplicationContext ctx = new ClassPathXmlApplicationContext("/application-context.xml");
     }
 }
